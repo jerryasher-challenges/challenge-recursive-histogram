@@ -15,16 +15,16 @@ An application that
 + Is specifying the directory on the command line sufficient?
 + Regarding the histogram, is one histogram of the word frequencies for all of the text files sufficient?
 + What defines a text file?
-  + a file name pattern ("*.txt", "*.text", ...)
-    + what are the patterns the app should look for?
-  + some other inspection of the file contents?
+  o a file name pattern ("*.txt", "*.text", ...)
+    - what are the patterns the app should look for?
+  o some other inspection of the file contents?
 + What defines a compressed archive?
-  + a file name pattern ("*.zip", "*.tar", ".tgz", ...)
-    + what are the patterns the app should look for?
-  + some other inspection of the file contents?
+  o a file name pattern ("*.zip", "*.tar", ".tgz", ...)
+    - what are the patterns the app should look for?
+  o some other inspection of the file contents?
 + Is there a preferred format of the histogram?
-  + If so, can you specify that now?
-  + Is json of a python dictionary suitable?
+  o If so, can you specify that now?
+  o Is json of a python dictionary suitable?
   
       histo = {'a': 1001, 
                'the' : 1200, 

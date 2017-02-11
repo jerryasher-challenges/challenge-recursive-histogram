@@ -17,15 +17,15 @@ An application that
 
 ## Usage
 
-Usage: walker.py
-  walker.py [<directory>] [options] [-v...]
-  walker.py -h | --help
+    Usage: walker.py
+      walker.py [<directory>] [options] [-v...]
+      walker.py -h | --help
 
-Options:
--v --verbose                print verbose status messages
--h --help                   Show this screen
+    Options:
+    -v --verbose                print verbose status messages
+    -h --help                   Show this screen
 
-If no directory is specified, walker defaults to the current directory
+    If no directory is specified, walker defaults to the current directory
 
 ## Testing
 

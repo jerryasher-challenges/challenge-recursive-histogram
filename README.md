@@ -1,6 +1,6 @@
 # Walker
 
-## Requirements
+## Requirements:
 
 An application that 
 
@@ -15,35 +15,29 @@ An application that
 + Is specifying the directory on the command line sufficient?
 + Regarding the histogram, is one histogram of the word frequencies for all of the text files sufficient?
 + What defines a text file?
-
-  o a file name pattern ("*.txt", "*.text", ...)
-
-    - what are the patterns the app should look for?
-
-  o some other inspection of the file contents?
-
-+ What defines a compressed archive?
-
-  o a file name pattern ("*.zip", "*.tar", ".tgz", ...)
-
-    - what are the patterns the app should look for?
-
-  o some other inspection of the file contents?
-
+    - a file name pattern ("\*.txt", "\*.text", ...)
+        * what are the patterns the app should look for?
+    - some other inspection of the file contents?
+  + What defines a compressed archive?
+    - a file name pattern ("\*.zip", "\*.tar", ".tgz", ...)
+        * what are the patterns the app should look for?
+    - some other inspection of the file contents?
 + Is there a preferred format of the histogram?
+    - If so, can you specify that now?
+    - Is json of a python dictionary suitable as output, or are you
+      looking for a table, or a graph?
+    
+```
+    histo = {'a': 1001,   
+             'the' : 1200,   
+             'apoplexy': 3  
+            }  
+```
 
-  o If so, can you specify that now?
-  o Is json of a python dictionary suitable?
-  
-      histo = {'a': 1001, 
-               'the' : 1200, 
-               'apoplexy': 3
-              }
-              
-    Or are you looking for a table, or a graph?
 
 
-## Usage
+
+## Usage:
 
     Usage: walker.py
       walker.py [<directory>] [options] [-v...]
@@ -55,7 +49,7 @@ An application that
 
     If no directory is specified, walker defaults to the current directory
 
-## Testing
+## Testing:
 
 This application supports pytest. To run self tests, use
 

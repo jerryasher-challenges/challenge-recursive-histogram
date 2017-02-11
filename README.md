@@ -14,6 +14,25 @@ An application that
 + Is a command line python program sufficient?
 + Is specifying the directory on the command line sufficient?
 + Regarding the histogram, is one histogram of the word frequencies for all of the text files sufficient?
++ What defines a text file?
+  + a file name pattern ("*.txt", "*.text", ...)
+    + what are the patterns the app should look for?
+  + some other inspection of the file contents?
++ What defines a compressed archive?
+  + a file name pattern ("*.zip", "*.tar", ".tgz", ...)
+    + what are the patterns the app should look for?
+  + some other inspection of the file contents?
++ Is there a preferred format of the histogram?
+  + If so, can you specify that now?
+  + Is json of a python dictionary suitable?
+  
+      histo = {'a': 1001, 
+               'the' : 1200, 
+               'apoplexy': 3
+              }
+              
+    Or are you looking for a table, or a graph?
+
 
 ## Usage
 

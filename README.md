@@ -18,6 +18,7 @@ An application that
     - a file name pattern ("\*.txt", "\*.text", ...)
         * what are the patterns the app should look for?
     - some other inspection of the file contents?
++ What is the boundary of a word?
   + What defines a compressed archive?
     - a file name pattern ("\*.zip", "\*.tar", ".tgz", ...)
         * what are the patterns the app should look for?

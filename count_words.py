@@ -15,8 +15,9 @@ Usage: count_words.py
   count_words.py -h | --help
 
 Options:
---test                      print basic args, do nothing else.
--x <dirs> --exclude <dirs>  comma separated directory pattern to exclude [default: .git]      
+-x <pattern> --exclude <pattern>  exclude files and directories that
+                            match this comma separated regex
+                            [default: .git,~$,__$,#$,#.*$,^\.]
 -v --verbose                print verbose status messages
 -h --help                   Show this screen
 
@@ -24,24 +25,12 @@ If no directory is specified, count_words defaults to the current directory
 
 """
 
-import fnmatch
-import os
-import re
-import subprocess
-
 from docopt import docopt
 
-
-def sum_histos(histo_list):
-    """adds the word counts of a list of histogram into a new"""
-    histo = {}
-    for h in histo_list:
-        for k, v in h.items():
-            if k in histo:
-                histo[k] = histo[k] + v
-            else:
-                histo[k] = v
-    return histo
+import os
+import subprocess
+import re
+from zipfile import ZipFile
 
 
 def file_type(file):
@@ -55,33 +44,164 @@ def file_type(file):
     return mime_type
 
 
-def count_words_one(path):
+def split_string(s):
+    """splits a string into it's component words"""
+    words = re.findall('[A-Za-z]+', s)
+    return words
+
+
+def merge_histos(histo_list):
+    """merges the word counts of a list of histogram into new"""
+    histo = {}
+    for h in histo_list:
+        for k, v in h.items():
+            if k in histo:
+                histo[k] = histo[k] + v
+            else:
+                histo[k] = v
+    return histo
+
+
+def count_words_string(a_string, verbose=0):
+    """returns a histo (dict) of the counted words, words are all downcased."""
+
+    word_list = split_string(a_string)
+
+    histo = {}
+    for word in word_list:
+        word = word.lower()
+        if word in histo:
+            histo[word] += 1
+        else:
+            histo[word] = 1
+    return histo
+
+
+def walk_zip(zip, walk_fn=None, re_excludes=None, verbose=0):
+    """walk a zipfile, calling walk_fn for each file found, skips
+    directories and files that match the re_excludes re."""
+
+    with ZipFile(path, "r") as z:
+        entries = z.namelist()
+
+        for entry in entries:
+            if not entry.endswith("/"):
+                if not re.search(re_excludes, entry):
+
+                    if walk_fn:
+                        with z.open(entry) as f:
+                            whole_string = f.read()
+                            walk_fn(whole_string, re_excludes, verbose)
+                    if verbose:
+                        print(path)
+                else:
+                    if verbose > 1:
+                        print("%s excluded" % f)
+
+
+def count_words_zip(path, re_excludes=None, verbose=0):
+    """walk a zip file, returning a histo of word counts in the files"""
+
+        h = []
+
+        def count_file(whole_string, re_excludes, verbose):
+            histo = count_words_string(whole_string, verbose)
+            if verbose > 2:
+                print("walk_fn: histo is {}".format(histo))
+            h.append(histo)
+
+        walk_zip(z, walk_fn=count_file,
+                 re_excludes=re_excludes, verbose=verbose)
+
+        histo = merge_histos(h)
+        return histo
+
+
+def count_words_item(path, re_excludes=None, verbose=0):
     """count the words in one item (may be file or compressed archive)"""
-    return {}
+
+    filetype = file_type(path)
+    if verbose > 2:
+        print("{} -> {}".format(filetype, path))
+    histo = {}
+    if filetype == "text/plain":
+        with open(path, "r", encoding="UTF-8") as f:
+            whole_file = f.read()
+        histo = count_words_string(whole_file, verbose)
+    elif filetype in ["application/zip", "application/java-archive"]:
+        histo = count_words_zip(path, re_excludes, verbose)
+    elif filetype == "application/x-7z-compressed":
+        pass
+
+    if verbose > 2 and histo != {}:
+        print(histo)
+
+    return histo
 
 
-def count_words(directory, re_excludes=None):
-    """walk a directory, returning a histogram of word counts in the files"""
+def walk_directory(directory, walk_fn=None, re_excludes=None, verbose=0):
+    """walk a directory, calling walk_fn for each file found, skips
+    directories and files that match the re_excludes re."""
 
-    if not re_excludes:
-        re_excludes = re.compile(r"^/:/")  # illegal linux and win filename
-
-    h = []
     for dirpath, dirs, files in os.walk(directory):
-        print("dirpath: %s" % dirpath)
-        print("dirs: %s" % dirs)
-        print("files: %s" % files)
-        print("")
+        if verbose:
+            print("")
+            print("dirpath: {}".format(dirpath))
+            print("dirs: {}".format(dirs))
+            print("files: {}".format(files))
+            print("")
 
         for f in files:
             if not re.search(re_excludes, f):
                 path = os.path.join(dirpath, f)
-                h.append(count_words_one(path))
-        dirs[:] = [d for d in dirs if not re.search(re_excludes, d)]
+                if walk_fn:
+                    walk_fn(path, re_excludes, verbose)
+                if verbose:
+                    print(path)
+            else:
+                if verbose > 1:
+                    print("%s excluded" % f)
 
-    histo = sum_histos(h)
+        if re_excludes:
+            dirs[:] = [d for d in dirs if not re.search(re_excludes, d)]
 
+
+def count_words_directory(directory, re_excludes=None, verbose=0):
+    """walk a directory, returning a histogram of word counts in the files"""
+
+    h = []
+
+    def count_file(path, re_excludes, verbose):
+        histo = count_words_item(path, re_excludes, verbose)
+        if verbose > 2:
+            print("walk_fn: histo is {}".format(histo))
+        h.append(histo)
+
+    walk_directory(directory, walk_fn=count_file,
+                   re_excludes=re_excludes, verbose=verbose)
+
+    histo = merge_histos(h)
     return histo
+
+
+def print_histo(histo):
+
+    total = 0
+    max_word_len = 0
+    for k in histo:
+        if len(k) > max_word_len:
+            max_word_len = len(k)
+        total += histo[k]
+
+    sorted_histo = sorted(
+        histo.items(), key=lambda item: item[1], reverse=True)
+
+    for word, count in sorted_histo:
+        percent = int(100 * count / total)
+        if percent <= 0:
+            break
+        print("{:>{width}}: {}".format(
+            word, '*' * percent, width=max_word_len))
 
 
 if __name__ == "__main__":
@@ -97,13 +217,12 @@ if __name__ == "__main__":
     excludes = excludes.split(",")
     re_excludes = re.compile("(" + ")|(".join(excludes) + ")")
 
-    if args['--test']:
+    if verbose:
         print(args)
-        print("directory is %s" % directory)
-        print("excludes is %s" % excludes)
-        exit()
+    if verbose > 2:
+        print("directory is {}".format(directory))
+        print("excludes is {}".format(excludes))
 
-    if verbose > 1:
-        print(args)
+    histo = count_words_directory(directory, re_excludes, verbose)
 
-    print(count_words(directory, re.excludes))
+    print_histo(histo)

@@ -19,6 +19,8 @@ An application that
         * what are the patterns the app should look for?
     - some other inspection of the file contents?
 + What is the boundary of a word?
+  + Contractions like "can't", "I'm", ...?
+    - assumption: word is a string of alpha, not a string of alphanum, no contractions, but case insensitive
   + What defines a compressed archive?
     - a file name pattern ("\*.zip", "\*.tar", ".tgz", ...)
         * what are the patterns the app should look for?

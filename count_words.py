@@ -77,11 +77,11 @@ def count_words_string(a_string, verbose=0):
     return histo
 
 
-def walk_zip(zip, walk_fn=None, re_excludes=None, verbose=0):
+def walk_zip(zip_path, walk_fn=None, re_excludes=None, verbose=0):
     """walk a zipfile, calling walk_fn for each file found, skips
     directories and files that match the re_excludes re."""
 
-    with ZipFile(path, "r") as z:
+    with ZipFile(zip_path, "r") as z:
         entries = z.namelist()
 
         for entry in entries:
@@ -90,8 +90,9 @@ def walk_zip(zip, walk_fn=None, re_excludes=None, verbose=0):
 
                     if walk_fn:
                         with z.open(entry) as f:
-                            whole_string = f.read()
-                            walk_fn(whole_string, re_excludes, verbose)
+                            whole_string = f.read().decode("utf-8")
+
+                            walk_fn(entry, whole_string, re_excludes, verbose)
                     if verbose:
                         print(path)
                 else:
@@ -102,19 +103,19 @@ def walk_zip(zip, walk_fn=None, re_excludes=None, verbose=0):
 def count_words_zip(path, re_excludes=None, verbose=0):
     """walk a zip file, returning a histo of word counts in the files"""
 
-        h = []
+    h = []
 
-        def count_file(whole_string, re_excludes, verbose):
-            histo = count_words_string(whole_string, verbose)
-            if verbose > 2:
-                print("walk_fn: histo is {}".format(histo))
-            h.append(histo)
+    def count_string(entry, whole_string, re_excludes, verbose):
+        histo = count_words_string(whole_string, verbose)
+        if verbose > 2:
+            print("walk_fn: histo is {}".format(histo))
+        h.append(histo)
 
-        walk_zip(z, walk_fn=count_file,
-                 re_excludes=re_excludes, verbose=verbose)
+    walk_zip(path, walk_fn=count_string,
+             re_excludes=re_excludes, verbose=verbose)
 
-        histo = merge_histos(h)
-        return histo
+    histo = merge_histos(h)
+    return histo
 
 
 def count_words_item(path, re_excludes=None, verbose=0):
@@ -130,8 +131,6 @@ def count_words_item(path, re_excludes=None, verbose=0):
         histo = count_words_string(whole_file, verbose)
     elif filetype in ["application/zip", "application/java-archive"]:
         histo = count_words_zip(path, re_excludes, verbose)
-    elif filetype == "application/x-7z-compressed":
-        pass
 
     if verbose > 2 and histo != {}:
         print(histo)

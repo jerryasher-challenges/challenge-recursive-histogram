@@ -26,7 +26,6 @@ If no directory is specified, count_words defaults to the current directory
 """
 
 from docopt import docopt
-
 import os
 import subprocess
 import re
@@ -94,7 +93,7 @@ def walk_zip(zip_path, walk_fn=None, re_excludes=None, verbose=0):
 
                             walk_fn(entry, whole_string, re_excludes, verbose)
                     if verbose:
-                        print(path)
+                        print(zip_path)
                 else:
                     if verbose > 1:
                         print("%s excluded" % f)
